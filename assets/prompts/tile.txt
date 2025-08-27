@@ -1,0 +1,1 @@
+Clean Mahjong tile, orthographic front view, centered, no drop shadow, transparent background. Ivory ceramic body (#F4F0E6) with subtle satin sheen and a mild inner inset. High contrast, crisp brush-stroke glyphs. Uniform lighting. 2:3 aspect. Output PNG with alpha. Canvas 512x768. Keep margins equal on all sides. No text other than tile mark.

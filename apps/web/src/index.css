@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-felt-700 min-h-screen;
+  }
+}
+
+@layer components {
+  .mahjong-tile {
+    @apply 
+      relative
+      bg-mahjong-ivory 
+      border-2 
+      border-gray-300
+      rounded-lg
+      shadow-lg
+      cursor-pointer
+      transition-all
+      duration-200
+      select-none;
+    
+    /* 2:3 aspect ratio */
+    aspect-ratio: 2/3;
+  }
+  
+  .mahjong-tile:hover {
+    @apply animate-tile-hover;
+  }
+  
+  .mahjong-tile.selected {
+    @apply animate-tile-select border-blue-500;
+  }
+  
+  .mahjong-tile.disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
+  .table-surface {
+    @apply 
+      bg-gradient-to-br 
+      from-felt-600 
+      to-felt-800 
+      rounded-xl 
+      shadow-2xl
+      p-6;
+  }
+  
+  .discard-river {
+    @apply 
+      grid 
+      grid-cols-6 
+      gap-1 
+      p-2 
+      bg-felt-800 
+      rounded-lg 
+      min-h-[100px];
+  }
+  
+  .hand-area {
+    @apply 
+      flex 
+      flex-wrap 
+      gap-2 
+      p-4 
+      bg-felt-800 
+      rounded-lg 
+      min-h-[120px];
+  }
+}
