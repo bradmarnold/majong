@@ -1,0 +1,8 @@
+{
+  "redirects": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/apps/api/api/$1"
+    }
+  ]
+}
