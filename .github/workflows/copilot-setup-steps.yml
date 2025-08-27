@@ -1,0 +1,12 @@
+name: Copilot setup steps
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+    - name: Install MCP server deps
+      shell: bash
+      run: npm ci || npm i
