@@ -137,14 +137,40 @@ export const useGameStore = create<GameStore>()(
       if (!game) return;
 
       try {
-        // This will be implemented when API is ready
+        // Call the API for a real teaching tip
+        const response = await fetch('/api/help', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            state: {
+              phase: game.phase,
+              players: game.players.length,
+              wall: game.wall.length,
+              currentPlayer: game.currentPlayer,
+            },
+            context: `Player has ${game.players[0]?.hand?.tiles?.length || 0} tiles in hand.`,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          set(state => ({
+            ui: { ...state.ui, currentTip: data.tip }
+          }));
+        } else {
+          throw new Error('API request failed');
+        }
+      } catch (error) {
+        console.error('Failed to get teaching tip:', error);
+        
+        // Fallback tip
         const tip = "Focus on completing simple sets like pungs (3 identical tiles) and chis (3 consecutive tiles of the same suit). Keep your hand organized and watch what other players discard!";
         
         set(state => ({
           ui: { ...state.ui, currentTip: tip }
         }));
-      } catch (error) {
-        console.error('Failed to get teaching tip:', error);
       }
     },
 
