@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/majong/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Majong - Hong Kong Mahjong</title>
+    <meta name="description" content="Play Hong Kong Mahjong online with AI teaching assistant" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+      // SPA fallback for GitHub Pages
+      const path = window.location.pathname.replace('/majong', '');
+      if (path && path !== '/') {
+        window.history.replaceState(null, null, '/majong/' + '#' + path);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/majong/assets/index.js"></script>
+  </body>
+</html>
