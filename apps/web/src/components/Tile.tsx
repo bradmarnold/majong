@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tile as TileType, TileSuit, WindType, DragonType } from '@majong/rules';
+import { assetLoader } from '../lib/assets';
 
 interface TileProps {
   tile: TileType;
@@ -18,13 +19,39 @@ const Tile: React.FC<TileProps> = ({
   size = 'md',
   onClick,
 }) => {
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [imageError, setImageError] = useState(false);
+
   const sizeClasses = {
     sm: 'w-8 h-12 text-xs',
     md: 'w-12 h-18 text-sm',
     lg: 'w-16 h-24 text-base',
   };
 
+  // Load tile image
+  useEffect(() => {
+    assetLoader.getTileImageUrl(
+      tile.suit,
+      tile.rank,
+      tile.wind,
+      tile.dragon
+    ).then(setImageUrl).catch(() => setImageError(true));
+  }, [tile]);
+
   const getTileDisplay = () => {
+    // Try to use generated image first
+    if (imageUrl && !imageError) {
+      return (
+        <img
+          src={imageUrl}
+          alt={getTileAltText()}
+          className="w-full h-full object-contain"
+          onError={() => setImageError(true)}
+        />
+      );
+    }
+
+    // Fallback to text/emoji representation
     if (tile.suit === TileSuit.Characters && tile.rank) {
       const characters = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
       return (
@@ -94,14 +121,36 @@ const Tile: React.FC<TileProps> = ({
     );
   };
 
+  const getTileAltText = () => {
+    if (tile.suit === TileSuit.Characters && tile.rank) {
+      return `${tile.rank} Characters`;
+    }
+    if (tile.suit === TileSuit.Bamboos && tile.rank) {
+      return `${tile.rank} Bamboos`;
+    }
+    if (tile.suit === TileSuit.Dots && tile.rank) {
+      return `${tile.rank} Dots`;
+    }
+    if (tile.suit === TileSuit.Winds && tile.wind) {
+      return `${tile.wind} Wind`;
+    }
+    if (tile.suit === TileSuit.Dragons && tile.dragon) {
+      return `${tile.dragon} Dragon`;
+    }
+    return 'Mahjong tile';
+  };
+
   return (
     <div
       className={`
         mahjong-tile
         ${sizeClasses[size]}
-        ${isSelected ? 'selected' : ''}
+        ${isSelected ? 'selected ring-2 ring-blue-500 ring-opacity-75' : ''}
         ${!isSelectable ? 'disabled' : ''}
         ${isAnimating ? 'animate-pulse' : ''}
+        transform transition-all duration-200 ease-in-out
+        ${isSelectable ? 'hover:scale-105 hover:shadow-xl hover:-translate-y-1' : ''}
+        ${isSelected ? 'scale-105 -translate-y-2' : ''}
       `}
       onClick={isSelectable ? onClick : undefined}
       role={isSelectable ? 'button' : undefined}
@@ -112,6 +161,7 @@ const Tile: React.FC<TileProps> = ({
           onClick?.();
         }
       } : undefined}
+      title={getTileAltText()}
     >
       {getTileDisplay()}
     </div>

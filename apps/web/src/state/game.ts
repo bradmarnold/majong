@@ -9,6 +9,8 @@ interface UIState {
   currentTip: string | null;
   showControls: boolean;
   animatingTile: string | null;
+  selectedBackground: string;
+  showSettings: boolean;
 }
 
 interface GameStore {
@@ -27,6 +29,8 @@ interface GameStore {
   drawTile: () => void;
   toggleTeachingDrawer: () => void;
   requestTeachingTip: () => void;
+  toggleSettings: () => void;
+  setBackground: (background: string) => void;
   
   // Bot actions
   performBotAction: (playerId: string) => void;
@@ -38,6 +42,8 @@ const initialUIState: UIState = {
   currentTip: null,
   showControls: true,
   animatingTile: null,
+  selectedBackground: 'felt',
+  showSettings: false,
 };
 
 export const useGameStore = create<GameStore>()(
@@ -172,6 +178,21 @@ export const useGameStore = create<GameStore>()(
           ui: { ...state.ui, currentTip: tip }
         }));
       }
+    },
+
+    toggleSettings: () => {
+      set(state => ({
+        ui: {
+          ...state.ui,
+          showSettings: !state.ui.showSettings,
+        }
+      }));
+    },
+
+    setBackground: (background: string) => {
+      set(state => ({
+        ui: { ...state.ui, selectedBackground: background }
+      }));
     },
 
     performBotAction: (playerId: string) => {

@@ -1,12 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGameStore } from '../state/game';
 import Hand from './Hand';
 import River from './River';
 import Controls from './Controls';
 import TeachingDrawer from './TeachingDrawer';
+import SettingsModal from './SettingsModal';
+import { assetLoader } from '../lib/assets';
 
 const Table: React.FC = () => {
-  const { game } = useGameStore();
+  const { game, ui, toggleSettings } = useGameStore();
+  const [backgroundUrl, setBackgroundUrl] = useState<string>('');
+
+  // Load background image
+  useEffect(() => {
+    assetLoader.getBackgroundImageUrl(ui.selectedBackground)
+      .then(setBackgroundUrl)
+      .catch(() => {
+        console.warn('Failed to load background, using default');
+      });
+  }, [ui.selectedBackground]);
 
   if (!game) {
     return (
@@ -21,6 +33,13 @@ const Table: React.FC = () => {
 
   const [player0, player1, player2, player3] = game.players;
   const currentPlayerIndex = game.players.findIndex(p => p.id === game.currentPlayer);
+
+  const tableStyle = backgroundUrl ? {
+    backgroundImage: `url(${backgroundUrl})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  } : {};
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -44,18 +63,38 @@ const Table: React.FC = () => {
             <div className="text-sm">
               Wall: <span className="font-semibold">{game.wall.length}</span> tiles
             </div>
+            
+            {/* Settings Button */}
+            <button
+              onClick={toggleSettings}
+              className="p-2 text-felt-200 hover:text-white transition-colors"
+              title="Settings (S)"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Game Area */}
-      <div className="flex-1 table-surface m-4">
-        <div className="h-full grid grid-cols-12 grid-rows-12 gap-4">
+      <div 
+        className="flex-1 table-surface m-4 relative overflow-hidden"
+        style={tableStyle}
+      >
+        {/* Background overlay for better contrast */}
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        
+        <div className="relative h-full grid grid-cols-12 grid-rows-12 gap-4 p-4">
           
           {/* Top Player (Opposite) */}
           <div className="col-span-6 col-start-4 row-start-1 row-span-2">
             <div className="text-center mb-2">
-              <span className="text-white text-sm font-medium">{player2.name}</span>
+              <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+                {player2.name}
+              </span>
               {player2.isDealer && <span className="ml-2 text-yellow-400">●</span>}
             </div>
             <Hand
@@ -78,7 +117,9 @@ const Table: React.FC = () => {
           {/* Left Player */}
           <div className="col-span-2 row-start-4 row-span-6">
             <div className="text-center mb-2">
-              <span className="text-white text-sm font-medium">{player1.name}</span>
+              <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+                {player1.name}
+              </span>
               {player1.isDealer && <span className="ml-2 text-yellow-400">●</span>}
             </div>
             <Hand
@@ -101,12 +142,14 @@ const Table: React.FC = () => {
           {/* Center Area */}
           <div className="col-span-4 col-start-5 row-start-5 row-span-4 flex items-center justify-center">
             <div className="text-center text-white">
-              <div className="w-24 h-24 bg-felt-600 rounded-full flex items-center justify-center mb-2">
-                <svg className="w-12 h-12 text-felt-200" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-24 h-24 bg-black bg-opacity-50 rounded-full flex items-center justify-center mb-2 shadow-lg">
+                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                 </svg>
               </div>
-              <div className="text-sm text-felt-200">Wall: {game.wall.length}</div>
+              <div className="text-sm bg-black bg-opacity-50 px-2 py-1 rounded">
+                Wall: {game.wall.length}
+              </div>
             </div>
           </div>
 
@@ -122,7 +165,9 @@ const Table: React.FC = () => {
           {/* Right Player */}
           <div className="col-span-2 col-start-11 row-start-4 row-span-6">
             <div className="text-center mb-2">
-              <span className="text-white text-sm font-medium">{player3.name}</span>
+              <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+                {player3.name}
+              </span>
               {player3.isDealer && <span className="ml-2 text-yellow-400">●</span>}
             </div>
             <Hand
@@ -145,7 +190,9 @@ const Table: React.FC = () => {
           {/* Bottom Player (Human) */}
           <div className="col-span-6 col-start-4 row-start-11 row-span-2">
             <div className="text-center mb-2">
-              <span className="text-white text-sm font-medium">{player0.name}</span>
+              <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-2 py-1 rounded">
+                {player0.name}
+              </span>
               {player0.isDealer && <span className="ml-2 text-yellow-400">●</span>}
             </div>
             <Hand
@@ -162,8 +209,9 @@ const Table: React.FC = () => {
       {/* Controls */}
       <Controls />
       
-      {/* Teaching Drawer */}
+      {/* Modals */}
       <TeachingDrawer />
+      <SettingsModal />
     </div>
   );
 };
