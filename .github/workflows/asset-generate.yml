@@ -1,0 +1,91 @@
+name: Generate Assets
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_message:
+        description: 'Commit message for generated assets'
+        required: false
+        default: 'Generate new Mahjong assets'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Build API package
+      run: pnpm --filter @majong/api run build
+
+    - name: Generate assets
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        cd apps/api
+        pnpm tsx scripts/generate-assets.ts
+
+    - name: Create preview image
+      run: |
+        echo "## 🎨 Generated Assets" > asset-preview.md
+        echo "" >> asset-preview.md
+        echo "Generated on: $(date)" >> asset-preview.md
+        echo "" >> asset-preview.md
+        echo "### Tiles Generated:" >> asset-preview.md
+        find apps/web/public/tiles -name "*.png" | wc -l | xargs echo "- Total tiles:" >> asset-preview.md
+        echo "" >> asset-preview.md
+        echo "### Backgrounds Generated:" >> asset-preview.md
+        find apps/web/public/backgrounds -name "*.jpg" | wc -l | xargs echo "- Total backgrounds:" >> asset-preview.md
+        echo "" >> asset-preview.md
+        echo "### Asset Manifest:" >> asset-preview.md
+        echo '```json' >> asset-preview.md
+        cat apps/web/public/tiles/index.json >> asset-preview.md
+        echo '```' >> asset-preview.md
+
+    - name: Create branch
+      run: |
+        BRANCH_NAME="feat/generated-assets-$(date +%Y%m%d-%H%M%S)"
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+        git checkout -b $BRANCH_NAME
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add apps/web/public/tiles/ apps/web/public/backgrounds/
+        git add asset-preview.md
+        git commit -m "${{ github.event.inputs.commit_message || 'Generate new Mahjong assets' }}"
+
+    - name: Push branch
+      run: git push origin $BRANCH_NAME
+
+    - name: Create Pull Request
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh pr create \
+          --title "🎨 Auto-generated Mahjong Assets" \
+          --body-file asset-preview.md \
+          --head $BRANCH_NAME \
+          --base main \
+          --label "assets" \
+          --label "auto-generated"
